@@ -1,0 +1,16 @@
+# This gitignore is following allow-list approach.
+
+# Ignore everything.
+*
+
+# But not these files:
+!.gitignore
+
+!*.go
+!go.sum
+!go.mod
+
+!README.md
+!LICENSE
+
+!test/
