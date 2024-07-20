@@ -28,16 +28,18 @@ func NewSomeService(
 }
 
 func (s *someService) DoSomething(ctx context.Context, user User, movie Movie) (err error) {
-	uowInstance := uow.NewInstance(s.uowBase)
+	tx := uow.NewTransaction(s.uowBase)
 
-	ctx, err = uowInstance.Begin(ctx)
+	ctx, err = tx.Begin(ctx)
 	if err != nil {
 		return err
 	}
+
 	defer func() {
 		if err != nil {
-			_ = uowInstance.Rollback()
+			_ = tx.Rollback()
 		}
+		_ = tx.Commit()
 	}()
 
 	err = s.userRepo.Create(ctx, user)
@@ -46,11 +48,6 @@ func (s *someService) DoSomething(ctx context.Context, user User, movie Movie) (
 	}
 
 	err = s.movieRepo.Create(ctx, movie)
-	if err != nil {
-		return err
-	}
-
-	err = uowInstance.Commit()
 	if err != nil {
 		return err
 	}

@@ -5,7 +5,7 @@ import (
 	"database/sql"
 )
 
-const TxContextKey = "tx"
+const txContextKey = "tx"
 
 type Transaction interface {
 	Begin(context.Context) (context.Context, error)
@@ -28,7 +28,7 @@ type uow struct {
 	tx *sql.Tx
 }
 
-func NewInstance(base Base) Transaction {
+func NewTransaction(base Base) Transaction {
 	return &uow{
 		db: base.db,
 	}
@@ -41,7 +41,7 @@ func (u *uow) Begin(ctx context.Context) (context.Context, error) {
 	}
 
 	u.tx = tx
-	ctx = context.WithValue(ctx, TxContextKey, tx)
+	ctx = context.WithValue(ctx, txContextKey, tx)
 
 	return ctx, nil
 }
@@ -52,4 +52,9 @@ func (u *uow) Commit() error {
 
 func (u *uow) Rollback() error {
 	return u.tx.Rollback()
+}
+
+func TxFromContext(ctx context.Context) (*sql.Tx, bool) {
+	tx, ok := ctx.Value(txContextKey).(*sql.Tx)
+	return tx, ok
 }

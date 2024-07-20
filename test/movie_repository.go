@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"database/sql"
+	"uow"
 )
 
 type MovieRepository interface {
@@ -10,17 +10,17 @@ type MovieRepository interface {
 }
 
 type movieRepository struct {
-	db Querier
+	querier Querier
 }
 
-func NewMovieRepository(db Querier) MovieRepository {
-	return &movieRepository{db: db}
+func NewMovieRepository(querier Querier) MovieRepository {
+	return &movieRepository{querier: querier}
 }
 
 func (r *movieRepository) Create(ctx context.Context, m Movie) error {
-	querier := r.db
+	querier := r.querier
 
-	tx, ok := ctx.Value("tx").(*sql.Tx)
+	tx, ok := uow.TxFromContext(ctx)
 	if ok {
 		querier = tx
 	}

@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"database/sql"
+	"uow"
 )
 
 type UserRepository interface {
@@ -10,17 +10,17 @@ type UserRepository interface {
 }
 
 type userRepository struct {
-	db Querier
+	querier Querier
 }
 
-func NewUserRepository(db Querier) UserRepository {
-	return &userRepository{db: db}
+func NewUserRepository(querier Querier) UserRepository {
+	return &userRepository{querier: querier}
 }
 
 func (r *userRepository) Create(ctx context.Context, user User) error {
-	querier := r.db
+	querier := r.querier
 
-	tx, ok := ctx.Value("tx").(*sql.Tx)
+	tx, ok := uow.TxFromContext(ctx)
 	if ok {
 		querier = tx
 	}
